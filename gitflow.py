@@ -88,6 +88,7 @@ def main(argv):
         # print arg
         if arg == "-h":
             print 'Create a hotfix: gitflow.py hotfix'
+            print 'Finish a hotfix: gitflow.py finish-hotfix'
             sys.exit()
         if arg == 'hotfix':
             hotfix()
