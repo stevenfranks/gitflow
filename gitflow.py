@@ -2,6 +2,7 @@ import re
 import os
 import sys
 import getopt
+import os.path
 
 # print 'Number of arguments:', len(sys.argv), 'arguments.'
 # print 'Argument List:', str(sys.argv)
@@ -26,15 +27,21 @@ def write_new_version(version_file, new_version):
 
 def get_current_version(version_file):
 
-    with open(version_file, 'r') as f:
+    if os.path.exists(version_file):
 
-        # get current version
-        first_line = f.readline().strip()
-        print 'Current version is %s..' % first_line
+        with open(version_file, 'r') as f:
 
-        current = first_line
+            # get current version
+            first_line = f.readline().strip()
+            print 'Current version is %s..' % first_line
 
-        return current
+            current = first_line
+
+            return current
+    else:
+
+        print 'Version file not found.. Exiting'
+        sys.exit()
 
 def hotfix():
 
