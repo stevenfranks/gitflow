@@ -5,6 +5,7 @@ import os
 import sys
 import getopt
 import os.path
+import subprocess
 
 # print 'Number of arguments:', len(sys.argv), 'arguments.'
 # print 'Argument List:', str(sys.argv)
@@ -60,6 +61,21 @@ def hotfix():
 
     if confirm_new_version == 'y':
 
+        # get current branch
+        branch_name = subprocess.check_output(['git', 'symbolic-ref', '--short', 'HEAD']).strip()
+
+        # we should be creating the hotfix from master
+        if branch_name != 'master':
+
+            print 'It looks like you\'re not on master. Do you want to switch to it?'
+
+            confirm_switch_to_master = raw_input(':')
+
+            if confirm_switch_to_master == 'y':
+
+                # switch back to master before creating hotfix branch
+                os.system('git checkout master')
+
         # check out new branch
         print 'Checking out new hotfix branch..'
         os.system('git checkout -b hotfix-%s' % new_version)
@@ -68,8 +84,11 @@ def hotfix():
         print 'Bumping version..'
         write_new_version(version_file, new_version)
         os.system('git add .version; git commit -m "Bumped to %s"' % new_version)
+
+        print '----------'
         print 'Finished creating hotfix.. Exiting'
-        print 'Run \'gitflow.py finish-hotfix\' when you\'re done'
+        print 'Run \'gitflow finish-hotfix\' when you\'re done'
+        print '----------'
 
 def finish_hotfix():
 
@@ -87,8 +106,10 @@ def finish_hotfix():
         # merge into master
         os.system('git checkout master; git merge --no-ff --no-edit hotfix-%s' % current_version)
 
+        print '----------'
         print 'Finished hotfix.. Exiting'
         print 'Don\'t forget to tag!'
+        print '----------'
 
 def main(argv):
 
