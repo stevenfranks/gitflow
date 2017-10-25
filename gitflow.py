@@ -50,6 +50,15 @@ def hotfix():
 
     print 'Using mode: hotfix'
 
+    print '----------'
+    print 'Updating branches'
+    print '----------'
+
+    # make sure we have the latest changes
+    os.system('git checkout master; git pull origin master;')
+    os.system('git checkout develop; git pull origin develop;')
+    os.system('git checkout master;')
+
     # get current version
     current_version = get_current_version(version_file)
 
