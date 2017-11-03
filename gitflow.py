@@ -126,12 +126,12 @@ def main(argv):
     for arg in sys.argv:
         # print arg
         if arg == "-h":
-            print 'Create a hotfix: gitflow.py hotfix'
-            print 'Finish a hotfix: gitflow.py finish-hotfix'
+            print 'Create a hotfix: gitflow hotfix OR gitflow start'
+            print 'Finish a hotfix: gitflow finish-hotfix OR gitflow finish'
             sys.exit()
-        if arg == 'hotfix':
+        if arg == 'hotfix' or arg == 'start':
             hotfix()
-        if arg == 'finish-hotfix':
+        if arg == 'finish-hotfix' or arg == 'finish':
             finish_hotfix()
 
 if __name__ == "__main__":
