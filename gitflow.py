@@ -161,6 +161,14 @@ def get_bottom_toolbar_tokens(cli):
     current_version = get_current_version(version_file)
     return [(Token.Toolbar, current_version)]
 
+def graceful_exit():
+    print 'Bye!'
+    sys.exit()
+
+def get_current_branch():
+    # get current branch
+    branch_name = subprocess.check_output(['git', 'symbolic-ref', '--short', 'HEAD']).strip()
+    return branch_name
 
 logo = """
       :::::::::   :::::::: 
@@ -174,17 +182,16 @@ logo = """
 Type a command and press enter:
 """
 
-
 logo = """
         .__  __    _____.__                 
    ____ |__|/  |__/ ____\  |   ______  _  ___
   / ___\|  \   __\   __\|  |  /  _ \ \/ \ / /
  / /_/  >  ||  |  |  |  |  |_(  <_> )      / 
  \___  /|__||__|  |__|  |____/\____/ \_/\_/  
-/_____/  v1.0.0                                   
+/_____/  %s    %s                              
                                                 
 Type a command and press enter:
-"""
+""" % (get_current_version(version_file), get_current_branch())
 
 
 # start gitflow cli
@@ -197,13 +204,11 @@ try:
 
 except EOFError:
 
-    print 'Bye!'
-    sys.exit()
+    graceful_exit()
 
 except KeyboardInterrupt:
 
-    print 'Bye!'
-    sys.exit()
+    graceful_exit()
 
 
 # keep prompt running
@@ -226,31 +231,31 @@ while True:
         elif text.strip() == 'check':
             check_branch()
 
+        elif text.strip() == 'finish':
+            finish_hotfix()
+
     except EOFError:
 
-        print 'Bye!'
+        graceful_exit()
+
+    except KeyboardInterrupt:
+
+        graceful_exit()
 
     except:
 
         pass
 
-    text = prompt('> ', completer=syntax_completer, style=example_style, )
-    # text = prompt('> ', completer=syntax_completer, get_bottom_toolbar_tokens=get_bottom_toolbar_tokens, style=example_style, )
 
 
-def main(argv):
+    try:
 
-    # read arguments
-    for arg in sys.argv:
-        # print arg
-        if arg == "-h":
-            print 'Create a hotfix: gitflow hotfix OR gitflow start'
-            print 'Finish a hotfix: gitflow finish-hotfix OR gitflow finish'
-            sys.exit()
-        if arg == 'hotfix' or arg == 'start':
-            hotfix()
-        if arg == 'finish-hotfix' or arg == 'finish':
-            finish_hotfix()
+        text = prompt('> ', completer=syntax_completer, style=example_style, vi_mode=True)
 
-if __name__ == "__main__":
-    main(sys.argv[1:])
+    except EOFError:
+
+        graceful_exit()
+
+    except KeyboardInterrupt:
+
+        graceful_exit()
