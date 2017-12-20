@@ -6,7 +6,7 @@
 
 ### Install Requirements
 
-`python install setup.py`
+`python setup.py install`
 
 ### Create symlink (optional)
 

@@ -32,7 +32,7 @@ example_style = style_from_dict({
     Token.Toolbar: '#ffffff bg:#333333',
 })
 
-syntax_completer = WordCompleter(['start', 'finish', 'hotfix', 'help', 'exit', 'check'])
+syntax_completer = WordCompleter(['start', 'finish', 'feature', 'hotfix', 'help', 'exit', 'check'])
 # text = prompt(get_prompt_tokens=get_prompt_tokens, style=example_style, completer=syntax_completer)
 
 
@@ -150,6 +150,26 @@ def finish_hotfix():
         print 'Don\'t forget to tag!'
         print '----------'
 
+def create_feature():
+
+    print 'Using mode: feature'
+
+    # see if working tree is dirty
+
+    # tree is clean
+    if check_current_tree() == 0:
+
+        feature_name = prompt('What is your feature called? > ', completer=syntax_completer, style=example_style, )
+
+        print 'Going to grab latest code and push new branch'
+        continue_feature = prompt('Continue? > ', completer=syntax_completer, style=example_style, )
+
+        if continue_feature == 'y':
+
+            get_latest_code()
+            create_new_branch(feature_name)
+            push_branch(feature_name)
+
 
 def check_branch():
     branch = os.system('git show-branch remotes/origin/master')
@@ -169,6 +189,58 @@ def get_current_branch():
     # get current branch
     branch_name = subprocess.check_output(['git', 'symbolic-ref', '--short', 'HEAD']).strip()
     return branch_name
+
+def create_new_branch(new_branch):
+    # create new branch
+    new_branch = subprocess.check_output(['git', 'checkout', '-b', new_branch]).strip()
+    return new_branch
+
+def push_branch(new_branch):
+    # push new branch
+    push_branch = subprocess.check_output(['git', 'push', 'origin', new_branch]).strip()
+    return push_branch
+
+def get_latest_code():
+    # get latest code from master
+    subprocess.check_output(['git', 'checkout', 'master'])
+    subprocess.check_output(['git', 'pull', 'origin', 'master'])
+    # get latest code from develop
+    # subprocess.check_output(['git', 'checkout', 'develop'])
+    # subprocess.check_output(['git', 'pull', 'origin', 'develop'])
+
+
+def check_current_tree():
+    # get amount of files in working tree
+    not_staged = "git diff-index HEAD | wc -l"
+    not_staged_ps = subprocess.Popen(not_staged, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    not_staged_output = not_staged_ps.communicate()[0].strip()
+
+    stash_status = 0
+
+    if not_staged_output != '0':
+
+        print 'Current working tree is dirty'
+        print 'Unstaged files: %s' % not_staged_output
+        
+        text = prompt('Stash changes? > ', completer=syntax_completer,
+                      style=example_style, )
+
+        if text.strip() == 'y':
+
+            stash_files()
+            stash_status = 0
+
+        elif text.strip() == 'n':
+
+            print 'Pulling the latest code is probably going to fail. Exiting feature mode'
+            stash_status = 1
+
+    return stash_status
+
+
+def stash_files():
+    stash_files = os.system('git add -u; git stash save;')
+
 
 logo = """
       :::::::::   :::::::: 
@@ -234,6 +306,12 @@ while True:
         elif text.strip() == 'finish':
             finish_hotfix()
 
+        elif text.strip() == 'feature':
+            create_feature()
+
+        elif text.strip() == 'checktree':
+            check_current_tree()
+
     except EOFError:
 
         graceful_exit()
@@ -247,7 +325,7 @@ while True:
         pass
 
 
-
+    # main prompt
     try:
 
         text = prompt('> ', completer=syntax_completer, style=example_style, vi_mode=True)
