@@ -8,6 +8,7 @@ import sys
 import getopt
 import os.path
 import subprocess
+import webbrowser
 
 from prompt_toolkit import prompt
 from prompt_toolkit.contrib.completers import WordCompleter
@@ -32,8 +33,9 @@ example_style = style_from_dict({
     Token.Toolbar: '#ffffff bg:#333333',
 })
 
-syntax_completer = WordCompleter(['start', 'finish', 'feature', 'hotfix', 'help', 'exit', 'check'])
+syntax_completer = WordCompleter(['start', 'finish', 'feature', 'hotfix', 'help', 'exit', 'check', 'review'])
 # text = prompt(get_prompt_tokens=get_prompt_tokens, style=example_style, completer=syntax_completer)
+
 
 
 version_file = '.version'
@@ -72,6 +74,32 @@ def get_current_version(version_file):
 
         print 'Version file not found'
 
+def get_all_branches():
+    proc = subprocess.check_output(['git', 'branch', '--sort=-committerdate']).split('\n')
+
+    return proc
+
+git_completer = WordCompleter(get_all_branches())
+
+def codeReview():
+    
+    user = subprocess.check_output(['id', '-un'])
+    print 'Do you want to review current ' + get_current_branch()
+    current_review = prompt(':');
+    if current_review == 'y':
+        print 'You are now reviewing ' + get_current_branch() + ' as %s' %user
+        
+	webbrowser.open('http://code/bg/gymnet/compare/master...' + get_current_branch())
+
+    elif current_review == 'n':
+	print 'which branch would you like to review'
+        review_hotfix = prompt(':', completer=git_completer)
+	
+	clean_review_hotfix = review_hotfix.replace('*','')
+
+	os.system('git checkout ' + clean_review_hotfix);
+
+	webbrowser.open('http://code/bg/gymnet/compare/master...' + clean_review_hotfix.strip())
 
 def create_hotfix():
 
@@ -287,7 +315,9 @@ while True:
             print 'Enter hotfix mode: hotfix'
             print 'Exit gitflow: exit'
             print 'Show current logfile: show log'
-
+	
+	elif text.strip() == 'review':
+		codeReview()
         elif text.strip() == 'hotfix' or text.strip() == 'start':
             create_hotfix()
 
