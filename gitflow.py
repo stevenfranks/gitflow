@@ -73,61 +73,53 @@ def get_current_version(version_file):
         print 'Version file not found'
 
 
-def hotfix():
+def create_hotfix():
 
     print 'Using mode: hotfix'
 
-    # print '----------'
-    # print 'Updating branches'
-    # print '----------'
+    # see if working tree is dirty
 
-    # make sure we have the latest changes
-    os.system('git checkout master; git pull origin master;')
-    os.system('git checkout develop; git pull origin develop;')
-    os.system('git checkout master;')
+    # tree is clean
+    if check_current_tree() == 0:
 
-    # get current version
-    current_version = get_current_version(version_file)
+        # get current version
+        current_version = get_current_version(version_file)
 
-    # increment version number
-    new_version = increment(current_version)
+        # increment version number
+        new_version = increment(current_version)
 
-    # print 'Do you want to bump to %s? (y/n)' %new_version
-    # confirm_new_version = raw_input(':')
+        confirm_new_version = prompt('Do you want to bump to %s? (y/n) > ' %new_version, completer=syntax_completer, style=example_style, )
 
-    confirm_new_version = prompt('Do you want to bump to %s? (y/n) > ' %new_version, completer=syntax_completer, style=example_style, )
+        if confirm_new_version == 'y':
+
+            # get current branch
+            branch_name = subprocess.check_output(['git', 'symbolic-ref', '--short', 'HEAD']).strip()
+
+            # we should be creating the hotfix from master
+            if branch_name != 'master':
+
+                confirm_switch_to_master =  prompt('It looks like you\'re not on master. Do you want to switch to it? > ', completer=syntax_completer, style=example_style, )
+
+                if confirm_switch_to_master == 'y':
+
+                    # switch back to master before creating hotfix branch
+                    os.system('git checkout master')
 
 
-    if confirm_new_version == 'y':
+            hotfix_name = 'hotfix-%s' % new_version
 
-        # get current branch
-        branch_name = subprocess.check_output(['git', 'symbolic-ref', '--short', 'HEAD']).strip()
+            print 'Going to grab latest code and push new branch'
+            continue_hotfix = prompt('Continue? > ', completer=syntax_completer, style=example_style, )
 
-        # we should be creating the hotfix from master
-        if branch_name != 'master':
+            if continue_hotfix == 'y':
 
-            print 'It looks like you\'re not on master. Do you want to switch to it?'
+                get_latest_code()
+                create_new_branch(hotfix_name)
+                push_branch(hotfix_name)
 
-            confirm_switch_to_master = raw_input(':')
+                write_new_version(version_file, new_version)
+                os.system('git add .version; git commit -m "Bumped to %s"' % new_version)
 
-            if confirm_switch_to_master == 'y':
-
-                # switch back to master before creating hotfix branch
-                os.system('git checkout master')
-
-        # check out new branch
-        print 'Checking out new hotfix branch..'
-        os.system('git checkout -b hotfix-%s' % new_version)
-
-        # bump version
-        print 'Bumping version..'
-        write_new_version(version_file, new_version)
-        os.system('git add .version; git commit -m "Bumped to %s"' % new_version)
-
-        print '----------'
-        print 'Finished creating hotfix.. Exiting'
-        print 'Run \'gitflow finish-hotfix\' when you\'re done'
-        print '----------'
 
 def finish_hotfix():
 
@@ -135,8 +127,7 @@ def finish_hotfix():
 
     current_version = get_current_version(version_file)
 
-    print 'Do you want to merge into develop and master? (y/n)'
-    confirm_merge = raw_input(':')
+    confirm_merge = prompt('Do you want to merge into develop and master? > ', completer=syntax_completer, style=example_style, )
 
     if confirm_merge == 'y':
 
@@ -145,10 +136,10 @@ def finish_hotfix():
         # merge into master
         os.system('git checkout master; git merge --no-ff --no-edit hotfix-%s' % current_version)
 
-        print '----------'
-        print 'Finished hotfix.. Exiting'
-        print 'Don\'t forget to tag!'
-        print '----------'
+        # print '----------'
+        # print 'Finished hotfix.. Exiting'
+        # print 'Don\'t forget to tag!'
+        # print '----------'
 
 def create_feature():
 
@@ -298,7 +289,7 @@ while True:
             print 'Show current logfile: show log'
 
         elif text.strip() == 'hotfix' or text.strip() == 'start':
-            hotfix()
+            create_hotfix()
 
         elif text.strip() == 'check':
             check_branch()
