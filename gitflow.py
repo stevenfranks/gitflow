@@ -243,7 +243,7 @@ def lint_files():
                 line_number = 0
                 for line in f:
                     line_number = line_number + 1
-                    if 'console.log' in line or 'print_me' in line or 'var_dump' in line:
+                    if 'console.log' in line or 'print_me' in line or 'var_dump' in line or 'error_log' in line:
                         print ':%s ' % line_number + line.strip('\n')
 
 
