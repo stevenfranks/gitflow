@@ -261,6 +261,20 @@ def stash_files():
     stash_files = os.system('git add -u; git stash save;')
 
 
+def lint_files():
+    # get changed files
+    files = subprocess.check_output(['git', 'diff', '--name-only']).split('\n')
+    # look for debug statements
+    for file in files:
+        if os.path.exists(file):
+            with open(file, 'r') as f:
+                line_number = 0
+                for line in f:
+                    line_number = line_number + 1
+                    if 'console.log' in line or 'print_me' in line or 'var_dump' in line or 'error_log' in line:
+                        print ':%s ' % line_number + line.strip('\n')
+
+
 logo = """
       :::::::::   :::::::: 
      :+:    :+: :+:    :+: 
@@ -332,6 +346,9 @@ while True:
 
         elif text.strip() == 'checktree':
             check_current_tree()
+
+        elif text.strip() == 'lint':
+            lint_files()
 
     except EOFError:
 
