@@ -8,6 +8,7 @@ import sys
 import getopt
 import os.path
 import subprocess
+import webbrowser
 
 from prompt_toolkit import prompt
 from prompt_toolkit.contrib.completers import WordCompleter
@@ -32,9 +33,8 @@ example_style = style_from_dict({
     Token.Toolbar: '#ffffff bg:#333333',
 })
 
-completion_list = sorted(['feature', 'hotfix', 'help', 'exit', 'check', 'shell', 'lint'])
+completion_list = sorted(['feature', 'hotfix', 'help', 'exit', 'check', 'shell', 'lint', 'review'])
 syntax_completer = (WordCompleter(completion_list))
-# text = prompt(get_prompt_tokens=get_prompt_tokens, style=example_style, completer=syntax_completer)
 
 
 version_file = '.version'
@@ -73,6 +73,55 @@ def get_current_version(version_file):
     else:
 
         print 'Version file not found'
+
+def get_all_branches():
+    proc = subprocess.check_output(['git', 'branch', '--sort=-committerdate']).replace('*','').replace(' ','').split('\n');
+
+    return proc
+
+git_completer = WordCompleter(get_all_branches())
+
+def get_diff():
+    diff = subprocess.check_output(['git', 'diff'])
+    return diff
+
+def code_review():
+
+    getDiff = get_diff()
+
+    if getDiff:
+        print getDiff
+        webbrowser.open('http://code/bg/gymnet/compare/master...' + get_current_branch.strip())
+        review_outcome = prompt('Review outcome:', style=example_style)
+        if review_outcome == 'p':
+            print 'Code review passed'
+            print 'running git add'
+            subprocess.check_output(['git', 'add', '-u'])
+            commit_message = prompt('Please enter a commit message:', style=example_style)
+            print 'commit -m "'+commit_message+'"'
+        else:
+            print'Please specify reasons behind failure'
+            fail_reasons = prompt(':')
+    else:
+        print 'No Changes Found in '+get_current_branch()
+        commit_waiting = subprocess.check_output(['git', 'status', '--short'])
+        if commit_waiting:
+            print commit_waiting
+            commit_changes = prompt('Commit changes:', style=example_style);
+            if commit_changes == 'y':
+                commit_message = prompt('Please enter a commit message:', style=example_style)
+                print 'commit -m "' + commit_message + '"'
+            else:
+                print 'process finished'
+        else:
+            change_branch = prompt('Change branch:', style=example_style);
+            if change_branch == 'y':
+                review_hotfix = prompt('Which branch would you like to review:', completer=git_completer, style=example_style)
+                clean_review_hotfix = review_hotfix.replace('*','')
+                os.system('git checkout ' + clean_review_hotfix)
+            else:
+                print 'continue'
+
 
 
 def create_hotfix():
@@ -337,6 +386,9 @@ while True:
             print '\033[1m' + 'check'  + '\033[0m'
             print '    Check if current branch exists on remote'
 
+
+        elif text.strip() == 'review':
+            code_review()
 
         elif text.strip() == 'hotfix' or text.strip() == 'start':
             create_hotfix()
