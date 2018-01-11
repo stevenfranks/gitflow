@@ -12,6 +12,7 @@ import webbrowser
 
 from prompt_toolkit import prompt
 from prompt_toolkit.contrib.completers import WordCompleter
+from prompt_toolkit.history import InMemoryHistory
 
 from prompt_toolkit.token import Token
 from prompt_toolkit.shortcuts import prompt
@@ -35,7 +36,7 @@ example_style = style_from_dict({
 
 completion_list = sorted(['feature', 'hotfix', 'help', 'exit', 'check', 'shell', 'lint', 'review'])
 syntax_completer = (WordCompleter(completion_list))
-
+history = InMemoryHistory()
 
 version_file = '.version'
 lastNum = re.compile(r'(?:[^\d]*(\d+)[^\d]*)+')
@@ -97,7 +98,7 @@ def code_review():
             print 'Code review passed'
             print 'running git add'
             subprocess.check_output(['git', 'add', '-u'])
-            commit_message = prompt('Please enter a commit message:', style=example_style)
+            commit_message = prompt('Please enter a commit message:', style=example_style, history=history)
             print 'commit -m "'+commit_message+'"'
         else:
             print'Please specify reasons behind failure'
@@ -116,7 +117,7 @@ def code_review():
         else:
             change_branch = prompt('Change branch:', style=example_style);
             if change_branch == 'y':
-                review_hotfix = prompt('Which branch would you like to review:', completer=git_completer, style=example_style)
+                review_hotfix = prompt('Which branch would you like to review:', completer=git_completer, style=example_style, history=history)
                 clean_review_hotfix = review_hotfix.replace('*','')
                 os.system('git checkout ' + clean_review_hotfix)
             else:
@@ -139,14 +140,14 @@ def create_hotfix():
         if branch_name != 'master':
 
             confirm_switch_to_master = prompt('It looks like you\'re not on master. Do you want to switch to it? > ',
-                                              completer=syntax_completer, style=example_style, )
+                                              completer=syntax_completer, style=example_style, history=history)
 
             if confirm_switch_to_master == 'y':
                 # switch back to master before creating hotfix branch
                 os.system('git checkout master')
 
         print 'Going to grab latest code'
-        continue_hotfix = prompt('Continue? > ', completer=syntax_completer, style=example_style, )
+        continue_hotfix = prompt('Continue? > ', completer=syntax_completer, style=example_style, history=history)
 
         if continue_hotfix == 'y':
 
@@ -159,7 +160,7 @@ def create_hotfix():
             new_version = increment(current_version)
 
             confirm_new_version = prompt('Do you want to bump to %s? (y/n) > ' % new_version,
-                                         completer=syntax_completer, style=example_style, )
+                                         completer=syntax_completer, style=example_style, history=history)
 
             hotfix_name = 'hotfix-%s' % new_version
 
@@ -172,7 +173,7 @@ def create_hotfix():
 
                 print 'Going to push hotfix branch'
 
-                push_hotfix = prompt('Continue? > ', completer=syntax_completer, style=example_style, )
+                push_hotfix = prompt('Continue? > ', completer=syntax_completer, style=example_style, history=history)
 
                 if push_hotfix == 'y':
                     # push_branch(hotfix_name)
@@ -185,7 +186,7 @@ def finish_hotfix():
     current_version = get_current_version(version_file)
 
     confirm_merge = prompt('Do you want to merge into develop and master? > ', completer=syntax_completer,
-                           style=example_style, )
+                           style=example_style, history=history)
 
     if confirm_merge == 'y':
         # merge into develop
@@ -207,10 +208,10 @@ def create_feature():
     # tree is clean
     if check_current_tree() == 0:
 
-        feature_name = prompt('What is your feature called? > ', completer=syntax_completer, style=example_style, )
+        feature_name = prompt('What is your feature called? > ', completer=syntax_completer, style=example_style, history=history)
 
         print 'Going to grab latest code and push new branch'
-        continue_feature = prompt('Continue? > ', completer=syntax_completer, style=example_style, )
+        continue_feature = prompt('Continue? > ', completer=syntax_completer, style=example_style, history=history)
 
         if continue_feature == 'y':
             get_latest_code()
@@ -290,7 +291,7 @@ def check_current_tree():
         print 'Unstaged files: %s' % not_staged_output
 
         text = prompt('Stash changes? > ', completer=syntax_completer,
-                      style=example_style, )
+                      style=example_style, history=history)
 
         if text.strip() == 'y':
 
@@ -323,7 +324,7 @@ def lint_files():
                         print ':%s ' % line_number + line.strip('\n')
 
 def shell():
-    command = prompt('Command to run > ', completer=syntax_completer, style=example_style, )
+    command = prompt('Command to run > ', completer=syntax_completer, style=example_style, history=history)
     os.system(command)
 
 logo = """
@@ -355,7 +356,7 @@ os.system('clear')
 
 try:
 
-    text = prompt(logo + '> ', style=example_style, completer=syntax_completer, vi_mode=True)
+    text = prompt(logo + '> ', completer=syntax_completer, style=example_style, history=history)
 
 except EOFError:
 
@@ -426,7 +427,7 @@ while True:
     # main prompt
     try:
 
-        text = prompt('> ', completer=syntax_completer, style=example_style, vi_mode=True)
+        text = prompt('> ', completer=syntax_completer, style=example_style, history=history)
 
     except EOFError:
 
