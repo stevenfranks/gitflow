@@ -317,8 +317,11 @@ def lint_files():
                         print ':%s ' % line_number + line.strip('\n')
 
 def shell():
+    print 'Type \'exit\' to return to gitflow'
     command = prompt('Command to run > ', completer=syntax_completer, style=example_style, history=history, get_bottom_toolbar_tokens=get_bottom_toolbar_tokens)
     os.system(command)
+    if 'exit' not in command:
+        shell()
 
 def get_bottom_toolbar_tokens(cli):
     toolbar_content = '<' + (get_current_version(version_file) + '> <' + get_current_branch() + '>')
@@ -366,7 +369,7 @@ while True:
             print '\033[1m' + 'feature'  + '\033[0m'
             print '     Create a feature branch'
             print '\033[1m' + 'shell'  + '\033[0m'
-            print '     Open a shell command prompt'
+            print '     Open a shell command prompt. Type exit to return to gitflow'
             print '\033[1m' + 'lint'  + '\033[0m'
             print '     Lint changed files for debug statements'
             print '\033[1m' + 'check'  + '\033[0m'
