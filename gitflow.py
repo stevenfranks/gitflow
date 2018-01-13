@@ -327,6 +327,19 @@ def get_bottom_toolbar_tokens(cli):
     toolbar_content = '<' + (get_current_version(version_file) + '> <' + get_current_branch() + '>')
     return [(Token.Toolbar, toolbar_content)]
 
+def update_gitflow():
+    # get latest gitflow version
+    gitflow_symlink_path = os.readlink(__file__)
+    gitflow_file_path = gitflow_symlink_path.replace('gitflow.py', '')
+    update_file_path = gitflow_symlink_path.replace('gitflow.py', 'update.py')
+    current_project_path = os.getcwd()
+
+    if os.path.exists(update_file_path):
+        os.chdir(gitflow_file_path)
+        exec(open(update_file_path))
+        os.chdir(current_project_path)
+
+
 logo = """
         .__  __    _____.__                 
    ____ |__|/  |__/ ____\  |   ______  _  ___
@@ -338,8 +351,12 @@ logo = """
 Type a command and press enter:
 """
 
-# start gitflow cli
+os.system('clear')
 
+# get latest gitflow version
+update_gitflow()
+
+# start gitflow cli
 os.system('clear')
 
 try:
