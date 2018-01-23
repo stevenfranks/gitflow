@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 from __future__ import unicode_literals  # for python 2 - convert all strings to unicode
 
