@@ -69,8 +69,16 @@ def get_current_version(version_file):
 
         return 'Version file not found'
 
+def get_git_version():
+    git_version = subprocess.check_output(['git', 'version']).lstrip('git version ').split(' ')[0]
+    return git_version
+
 def get_all_branches():
-    proc = subprocess.check_output(['git', 'branch', '--sort=-committerdate']).replace('*','').replace(' ','').split('\n');
+    # --sort=-committerdate option only available in git 2.7+
+    if get_git_version() > '2.7':
+        proc = subprocess.check_output(['git', 'branch', '--sort=-committerdate']).replace('*','').replace(' ','').split('\n');
+    else:
+        proc = subprocess.check_output(['git', 'branch']).replace('*', '').replace(' ', '').split('\n')
 
     return proc
 
