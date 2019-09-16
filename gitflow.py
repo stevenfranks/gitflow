@@ -82,50 +82,13 @@ def get_all_branches():
 
     return proc
 
-git_completer = WordCompleter(get_all_branches())
+def git_completer():
+    git_completer = WordCompleter(get_all_branches())
+    return git_completer
 
 def get_diff():
     diff = subprocess.check_output(['git', 'diff'])
     return diff
-
-def code_review():
-
-    getDiff = get_diff()
-
-    if getDiff:
-        print getDiff
-        webbrowser.open('http://code/bg/gymnet/compare/master...' + get_current_branch.strip())
-        review_outcome = prompt('Review outcome:', style=example_style)
-        if review_outcome == 'p':
-            print 'Code review passed'
-            print 'running git add'
-            subprocess.check_output(['git', 'add', '-u'])
-            commit_message = prompt('Please enter a commit message:', style=example_style, history=history, get_bottom_toolbar_tokens=get_bottom_toolbar_tokens)
-            print 'commit -m "'+commit_message+'"'
-        else:
-            print'Please specify reasons behind failure'
-            fail_reasons = prompt(':')
-    else:
-        print 'No Changes Found in '+get_current_branch()
-        commit_waiting = subprocess.check_output(['git', 'status', '--short'])
-        if commit_waiting:
-            print commit_waiting
-            commit_changes = prompt('Commit changes:', style=example_style);
-            if commit_changes == 'y':
-                commit_message = prompt('Please enter a commit message:', style=example_style)
-                print 'commit -m "' + commit_message + '"'
-            else:
-                print 'process finished'
-        else:
-            change_branch = prompt('Change branch:', style=example_style);
-            if change_branch == 'y':
-                review_hotfix = prompt('Which branch would you like to review:', completer=git_completer, style=example_style, history=history, get_bottom_toolbar_tokens=get_bottom_toolbar_tokens)
-                clean_review_hotfix = review_hotfix.replace('*','')
-                os.system('git checkout ' + clean_review_hotfix)
-            else:
-                print 'continue'
-
-
 
 def create_hotfix():
     print 'Using mode: hotfix'
@@ -238,8 +201,11 @@ def graceful_exit():
 
 def get_current_branch():
     # get current branch
-    branch_name = subprocess.check_output(['git', 'symbolic-ref', '--short', 'HEAD']).strip()
-    return branch_name
+    try:
+        branch_name = subprocess.check_output(['git', 'symbolic-ref', '--short', 'HEAD']).strip()
+        return branch_name
+    except:
+        graceful_exit()
 
 
 def create_new_branch(new_branch):
