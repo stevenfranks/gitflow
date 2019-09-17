@@ -1,29 +1,23 @@
 #!/usr/bin/env python
 
+from __future__ import print_function  # for python 3 - print function compatibility
 from __future__ import unicode_literals  # for python 2 - convert all strings to unicode
 
-import re
 import os
-import sys
-import getopt
 import os.path
+import re
 import subprocess
-import webbrowser
+import sys
 
-from prompt_toolkit import prompt
 from prompt_toolkit.contrib.completers import WordCompleter
 from prompt_toolkit.history import InMemoryHistory
-
-from prompt_toolkit.token import Token
 from prompt_toolkit.shortcuts import prompt
 from prompt_toolkit.styles import style_from_dict
+from prompt_toolkit.token import Token
 
-import getpass
-
-example_style = style_from_dict({
+prompt_style = style_from_dict({
     # User input.
     Token: '#ff0066',
-
     # Prompt.
     Token.Toolbar: '#ffffff bg:#000000',
 })
@@ -33,12 +27,12 @@ syntax_completer = (WordCompleter(completion_list))
 history = InMemoryHistory()
 
 version_file = '.version'
-lastNum = re.compile(r'(?:[^\d]*(\d+)[^\d]*)+')
+last_num = re.compile(r'(?:[^\d]*(\d+)[^\d]*)+')
 
 
 def increment(s):
     """ look for the last sequence of number(s) in a string and increment """
-    m = lastNum.search(s)
+    m = last_num.search(s)
     if m:
         next = str(int(m.group(1)) + 1)
         start, end = m.span(1)
@@ -69,29 +63,36 @@ def get_current_version(version_file):
 
         return 'Version file not found'
 
+
 def get_git_version():
     git_version = subprocess.check_output(['git', 'version']).lstrip('git version ').split(' ')[0]
     return git_version
 
+
 def get_all_branches():
     # --sort=-committerdate option only available in git 2.7+
     if get_git_version() > '2.7':
-        proc = subprocess.check_output(['git', 'branch', '--sort=-committerdate']).replace('*','').replace(' ','').split('\n');
+        proc = subprocess.check_output(['git', 'branch', '--sort=-committerdate']).replace('*', '').replace(' ',
+                                                                                                            '').split(
+            '\n')
     else:
         proc = subprocess.check_output(['git', 'branch']).replace('*', '').replace(' ', '').split('\n')
 
     return proc
 
+
 def git_completer():
     git_completer = WordCompleter(get_all_branches())
     return git_completer
+
 
 def get_diff():
     diff = subprocess.check_output(['git', 'diff'])
     return diff
 
+
 def create_hotfix():
-    print 'Using mode: hotfix'
+    print('Using mode: hotfix')
 
     # see if working tree is dirty
 
@@ -105,14 +106,16 @@ def create_hotfix():
         if branch_name != 'master':
 
             confirm_switch_to_master = prompt('It looks like you\'re not on master. Do you want to switch to it? > ',
-                                              completer=syntax_completer, style=example_style, history=history, get_bottom_toolbar_tokens=get_bottom_toolbar_tokens)
+                                              completer=syntax_completer, style=prompt_style, history=history,
+                                              get_bottom_toolbar_tokens=get_bottom_toolbar_tokens)
 
             if confirm_switch_to_master == 'y':
                 # switch back to master before creating hotfix branch
                 os.system('git checkout master')
 
-        print 'Going to grab latest code'
-        continue_hotfix = prompt('Continue? > ', completer=syntax_completer, style=example_style, history=history, get_bottom_toolbar_tokens=get_bottom_toolbar_tokens)
+        print('Going to grab latest code')
+        continue_hotfix = prompt('Continue? > ', completer=syntax_completer, style=prompt_style, history=history,
+                                 get_bottom_toolbar_tokens=get_bottom_toolbar_tokens)
 
         if continue_hotfix == 'y':
 
@@ -125,7 +128,8 @@ def create_hotfix():
             new_version = increment(current_version)
 
             confirm_new_version = prompt('Do you want to bump to %s? (y/n) > ' % new_version,
-                                         completer=syntax_completer, style=example_style, history=history, get_bottom_toolbar_tokens=get_bottom_toolbar_tokens)
+                                         completer=syntax_completer, style=prompt_style, history=history,
+                                         get_bottom_toolbar_tokens=get_bottom_toolbar_tokens)
 
             hotfix_name = 'hotfix-%s' % new_version
 
@@ -136,21 +140,22 @@ def create_hotfix():
                 write_new_version(version_file, new_version)
                 os.system('git add .version; git commit -m "Bumped to %s"' % new_version)
 
-                print 'Going to push hotfix branch'
+                print('Going to push hotfix branch')
 
-                push_hotfix = prompt('Continue? > ', completer=syntax_completer, style=example_style, history=history, get_bottom_toolbar_tokens=get_bottom_toolbar_tokens)
+                push_hotfix = prompt('Continue? > ', completer=syntax_completer, style=prompt_style, history=history,
+                                     get_bottom_toolbar_tokens=get_bottom_toolbar_tokens)
 
                 if push_hotfix == 'y':
                     push_branch(hotfix_name)
 
 
 def finish_hotfix():
-    print 'Using mode: finish hotfix'
+    print('Using mode: finish hotfix')
 
     current_version = get_current_version(version_file)
 
     confirm_merge = prompt('Do you want to merge into develop and master? > ', completer=syntax_completer,
-                           style=example_style, history=history, get_bottom_toolbar_tokens=get_bottom_toolbar_tokens)
+                           style=prompt_style, history=history, get_bottom_toolbar_tokens=get_bottom_toolbar_tokens)
 
     if confirm_merge == 'y':
         # merge into develop
@@ -165,17 +170,19 @@ def finish_hotfix():
 
 
 def create_feature():
-    print 'Using mode: feature'
+    print('Using mode: feature')
 
     # see if working tree is dirty
 
     # tree is clean
     if check_current_tree() == 0:
 
-        feature_name = prompt('What is your feature called? > ', completer=syntax_completer, style=example_style, history=history, get_bottom_toolbar_tokens=get_bottom_toolbar_tokens)
+        feature_name = prompt('What is your feature called? > ', completer=syntax_completer, style=prompt_style,
+                              history=history, get_bottom_toolbar_tokens=get_bottom_toolbar_tokens)
 
-        print 'Going to grab latest code and push new branch'
-        continue_feature = prompt('Continue? > ', completer=syntax_completer, style=example_style, history=history, get_bottom_toolbar_tokens=get_bottom_toolbar_tokens)
+        print('Going to grab latest code and push new branch')
+        continue_feature = prompt('Continue? > ', completer=syntax_completer, style=prompt_style, history=history,
+                                  get_bottom_toolbar_tokens=get_bottom_toolbar_tokens)
 
         if continue_feature == 'y':
             get_latest_code()
@@ -188,14 +195,14 @@ def check_branch():
     return branch
 
 
-def get_bottom_toolbar_tokens(cli):
+def get_bottom_toolbar_tokens():
     # get current version
     current_version = get_current_version(version_file)
     return [(Token.Toolbar, current_version)]
 
 
 def graceful_exit():
-    print 'Bye!'
+    print('Bye!')
     sys.exit()
 
 
@@ -230,18 +237,18 @@ def get_latest_code():
 
     # check for merge conflicts and then handle them
     if 'Automatic merge failed' in pull_master_output:
-        print 'Merge conflicts found. Please fix them before continuing'
+        print('Merge conflicts found. Please fix them before continuing')
         sys.exit()
 
     # get latest code from develop
     # subprocess.check_output(['git', 'checkout', 'develop'])
     # subprocess.check_output(['git', 'pull', 'origin', 'develop'])
 
-    print pull_master_output
+    print(pull_master_output)
 
 
 def handle_merge_conflicts():
-    print 'Handling merge conflicts'
+    print('Handling merge conflicts')
 
 
 def check_current_tree():
@@ -254,11 +261,11 @@ def check_current_tree():
 
     if not_staged_output != '0':
 
-        print 'Current working tree is dirty'
-        print 'Unstaged files: %s' % not_staged_output
+        print('Current working tree is dirty')
+        print('Unstaged files: %s' % not_staged_output)
 
         text = prompt('Stash changes? > ', completer=syntax_completer,
-                      style=example_style, history=history, get_bottom_toolbar_tokens=get_bottom_toolbar_tokens)
+                      style=prompt_style, history=history, get_bottom_toolbar_tokens=get_bottom_toolbar_tokens)
 
         if text.strip() == 'y':
 
@@ -267,7 +274,7 @@ def check_current_tree():
 
         elif text.strip() == 'n':
 
-            print 'Pulling the latest code is probably going to fail. Exiting feature mode'
+            print('Pulling the latest code is probably going to fail. Exiting feature mode')
             stash_status = 1
 
     return stash_status
@@ -275,6 +282,7 @@ def check_current_tree():
 
 def stash_files():
     stash_files = os.system('git add -u; git stash save;')
+    return stash_files
 
 
 def lint_files():
@@ -288,18 +296,22 @@ def lint_files():
                 for line in f:
                     line_number = line_number + 1
                     if 'console.log' in line or 'print_me' in line or 'var_dump' in line or 'error_log' in line:
-                        print ':%s ' % line_number + line.strip('\n')
+                        print(':%s ' % line_number + line.strip('\n'))
+
 
 def shell():
-    print 'Type \'exit\' to return to gitflow'
-    command = prompt('Command to run > ', completer=syntax_completer, style=example_style, history=history, get_bottom_toolbar_tokens=get_bottom_toolbar_tokens)
+    print('Type \'exit\' to return to gitflow')
+    command = prompt('Command to run > ', completer=syntax_completer, style=prompt_style, history=history,
+                     get_bottom_toolbar_tokens=get_bottom_toolbar_tokens)
     os.system(command)
     if 'exit' not in command:
         shell()
 
-def get_bottom_toolbar_tokens(cli):
+
+def get_bottom_toolbar_tokens():
     toolbar_content = '<' + (get_current_version(version_file) + '> <' + get_current_branch() + '>')
     return [(Token.Toolbar, toolbar_content)]
+
 
 def update_gitflow():
     # get latest gitflow version
@@ -310,7 +322,7 @@ def update_gitflow():
 
     if os.path.exists(update_file_path):
         os.chdir(gitflow_file_path)
-        exec(open(update_file_path))
+        exec (open(update_file_path))
         os.chdir(current_project_path)
 
 
@@ -335,7 +347,8 @@ os.system('clear')
 
 try:
 
-    text = prompt(logo + '> ', completer=syntax_completer, style=example_style, history=history, get_bottom_toolbar_tokens=get_bottom_toolbar_tokens)
+    text = prompt(logo + '> ', completer=syntax_completer, style=prompt_style, history=history,
+                  get_bottom_toolbar_tokens=get_bottom_toolbar_tokens)
 
 except EOFError:
 
@@ -354,21 +367,17 @@ while True:
             break
 
         elif text.strip() == 'help':
-            print '\033[1m' + 'COMMANDS' + '\033[0m'
-            print '\033[1m' + 'hotfix'  + '\033[0m'
-            print '     Create a hotfix branch'
-            print '\033[1m' + 'feature'  + '\033[0m'
-            print '     Create a feature branch'
-            print '\033[1m' + 'shell'  + '\033[0m'
-            print '     Open a shell command prompt. Type exit to return to gitflow'
-            print '\033[1m' + 'lint'  + '\033[0m'
-            print '     Lint changed files for debug statements'
-            print '\033[1m' + 'check'  + '\033[0m'
-            print '    Check if current branch exists on remote'
-
-
-        elif text.strip() == 'review':
-            code_review()
+            print('\033[1m' + 'COMMANDS' + '\033[0m')
+            print('\033[1m' + 'hotfix' + '\033[0m')
+            print('     Create a hotfix branch')
+            print('\033[1m' + 'feature' + '\033[0m')
+            print('     Create a feature branch')
+            print('\033[1m' + 'shell' + '\033[0m')
+            print('     Open a shell command prompt. Type exit to return to gitflow')
+            print('\033[1m' + 'lint' + '\033[0m')
+            print('     Lint changed files for debug statements')
+            print('\033[1m' + 'check' + '\033[0m')
+            print('    Check if current branch exists on remote')
 
         elif text.strip() == 'hotfix' or text.strip() == 'start':
             create_hotfix()
@@ -399,14 +408,11 @@ while True:
 
         graceful_exit()
 
-    except:
-
-        pass
-
     # main prompt
     try:
 
-        text = prompt('> ', completer=syntax_completer, style=example_style, history=history, get_bottom_toolbar_tokens=get_bottom_toolbar_tokens)
+        text = prompt('> ', completer=syntax_completer, style=prompt_style, history=history,
+                      get_bottom_toolbar_tokens=get_bottom_toolbar_tokens)
 
     except EOFError:
 

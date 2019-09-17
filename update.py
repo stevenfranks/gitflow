@@ -1,7 +1,8 @@
+from __future__ import print_function
 import subprocess
 import sys
 
-print 'Updating gitflow..'
+print('Updating gitflow..')
 # get latest gitflow version
 # process = subprocess.Popen(["git", "pull"], stdout=subprocess.PIPE)
 # output = process.communicate()[0]
@@ -9,5 +10,5 @@ print 'Updating gitflow..'
 try:
     output = subprocess.check_output(["git", "pull", "origin", "master"])
 except subprocess.CalledProcessError as e:
-    print 'Possible merge conflicts. Fix them before continuing'
+    print('Possible merge conflicts. Fix them before continuing')
     sys.exit()
