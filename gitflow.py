@@ -168,7 +168,6 @@ def finish_hotfix():
         # print 'Don\'t forget to tag!'
         # print '----------'
 
-
 def create_feature():
     print('Using mode: feature')
 
@@ -239,7 +238,6 @@ def get_latest_code():
     if 'Automatic merge failed' in pull_master_output:
         print('Merge conflicts found. Please fix them before continuing')
         sys.exit()
-
     # get latest code from develop
     # subprocess.check_output(['git', 'checkout', 'develop'])
     # subprocess.check_output(['git', 'pull', 'origin', 'develop'])
@@ -324,7 +322,6 @@ def update_gitflow():
         os.chdir(gitflow_file_path)
         exec (open(update_file_path))
         os.chdir(current_project_path)
-
 
 logo = """
         .__  __    _____.__                 
