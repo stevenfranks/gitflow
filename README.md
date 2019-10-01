@@ -4,11 +4,15 @@
 
 `git clone git@code:bg/gitflow.git`
 
+### Install Requirements
+
+`python setup.py install`
+
 ### Create symlink (optional)
 
 Go to `/usr/local/bin` and run `ln -s path/to/gitflow.py gitflow`
 
-You can now run `gitflow hotfix` within a project directory
+You can now run `gitflow` within a project directory to start the CLI
 
 # Usage
 
@@ -16,7 +20,7 @@ You can now run `gitflow hotfix` within a project directory
 
 ### Start a hotfix
 
-`gitflow hotfix` or `python gitflow.py hotfix`
+Type `hotfix` and press `Enter`
 
 This will;
 * Create hotfix branch and switch to it
@@ -25,7 +29,7 @@ This will;
 
 ### Finish a hotfix
 
-`gitflow finish-hotfix` or `python gitflow.py finish-hotfix`
+Type `finish` and press `Enter`
 
 This will;
 
